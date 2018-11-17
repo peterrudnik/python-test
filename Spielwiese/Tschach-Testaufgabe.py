@@ -72,8 +72,8 @@ datefmtOUT = '%Y-%m-%d %H:%M:%S'
 fileName    = 'casc_LTN_%(dateFrom)s.csv' % {'dateFrom':dateFrom}
 fileNameRawResponseData    = 'casc_LTN_%(dateFrom)s.xml' % {'dateFrom':dateFrom}
 #filePath    = "c:\\temp\\"
-filePath    = "P:\\temp\\"
-#filePath    = "e:\\Development\\projects\\python\\tschach_testaufgabe\\data\\"
+#filePath    = "P:\\temp\\"
+filePath    = "e:\\Development\\projects\\python\\tschach_testaufgabe\\data\\"
 
     
 columnNames = ['sourceID', 'utcTimeStamp', 'locTimeStamp', 'value']
@@ -171,7 +171,7 @@ response = requests.post(url,data=body,headers=headers)
 #print response.content   
 fileHandle = open(filePath + fileNameRawResponseData, 'w')
 #file.write( response.content.replace("<","\n<"))
-fileHandle.write( response.content)
+fileHandle.write( response.content.decode('utf8'))
 fileHandle.close()
 
 
@@ -193,7 +193,7 @@ pprint(my_namespaces)
 
 #sort dict sourceIDs by value: returns a list of lists with two elements each  
 #like so:  ((BEFR',  1), (BENL , 2) .....   
-sorted_sourceIDs = [x for x in sourceIDs.iteritems()]
+sorted_sourceIDs = [x for x in sourceIDs.items()]
 sorted_sourceIDs.sort(key=lambda x: x[1]) # sort by value 
 #test
 #for ID in sorted_sourceIDs:
@@ -203,7 +203,7 @@ sorted_sourceIDs.sort(key=lambda x: x[1]) # sort by value
 #open a csv file:  note: should use utf-8: but as there are no non ascii characters I don't bother
 #                        for writing utf-8 is best to use python 3.x: with open('output_file_name', 'w', newline='', encoding='utf-8') as csv_file: 
 #                        here we could be using something like: u = unicode(s, "utf-8")      
-with open(filePath + fileName, 'wb') as csvfile:
+with open(filePath + fileName, 'w') as csvfile:
     writer = csv.writer(csvfile, delimiter=';', quotechar='"', quoting=csv.QUOTE_MINIMAL)
     writer.writerow(columnNames)
     
@@ -233,7 +233,10 @@ with open(filePath + fileName, 'wb') as csvfile:
         
         for ID in sorted_sourceIDs:
             vvv = el.find("{http://tempuri.org/}%s" % ID[0])
-            value = vvv.text
+            if vvv:
+                value = vvv.text
+            else:
+                value = "N/A"    
             print("{0}({4});{1};{2};{3}".format(ID[1],utc_date.strftime(datefmtOUT),loc_date.strftime(datefmtOUT),value,ID[0]))
             writer.writerow([ID[1],utc_date.strftime(datefmtOUT),loc_date.strftime(datefmtOUT),value])
    
